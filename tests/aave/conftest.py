@@ -113,6 +113,22 @@ def pool_token(token):
 
 
 @pytest.fixture
+def trade_factory():
+    yield Contract("0x7BAF843e06095f68F4990Ca50161C2C4E4e01ec6")
+
+
+@pytest.fixture
+def ymechs_safe():
+    yield Contract("0x2C01B4AD51a67E2d8F02208F54dF9aC4c0B778B6")
+
+
+@pytest.fixture
+def morpho_token(interface):
+    token_address = "0x9994E35Db50125E0DF82e4c2dde62496CE330999"
+    yield interface.IERC20(token_address)
+
+
+@pytest.fixture
 def weth():
     yield Contract(token_addresses["WETH"])
 
@@ -151,12 +167,31 @@ def vault(pm, gov, rewards, guardian, management, token):
 
 
 @pytest.fixture
-def strategy(strategist, keeper, vault, pool_token, token, MorphoAaveStrategy, gov):
+def strategy(
+    strategist,
+    keeper,
+    vault,
+    pool_token,
+    MorphoAaveStrategy,
+    gov,
+    trade_factory,
+    ymechs_safe,
+    token,
+):
     strategy = strategist.deploy(
-        MorphoAaveStrategy, vault, pool_token, "StrategyMorphoAave" + token.symbol()
+        MorphoAaveStrategy,
+        vault,
+        pool_token,
+        "StrategyMorphoAave" + token.symbol(),
     )
     strategy.setKeeper(keeper)
     vault.addStrategy(strategy, 10_000, 0, 2**256 - 1, 1_000, {"from": gov})
+    trade_factory.grantRole(
+        trade_factory.STRATEGY(),
+        strategy.address,
+        {"from": ymechs_safe, "gas_price": "0 gwei"},
+    )
+    strategy.setTradeFactory(trade_factory.address, {"from": gov})
     yield strategy
 
 

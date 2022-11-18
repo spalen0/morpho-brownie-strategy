@@ -27,6 +27,14 @@ contract MorphoAaveStrategy is MorphoStrategy {
         )
     {}
 
+    function setAdditionalTradeTokens() internal virtual override {
+        // no additional reward tokens
+    }
+
+    function removeAdditionalTradeTokens() internal virtual override {
+        // no additional reward tokens
+    }
+
     function getSupplyBalancesForAmount(uint256 _amount)
         public
         view

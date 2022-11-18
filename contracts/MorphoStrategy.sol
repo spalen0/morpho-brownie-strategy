@@ -21,6 +21,7 @@ import "@openzeppelin/contracts/math/Math.sol";
 import "../interfaces/IMorpho.sol";
 import "../interfaces/IRewardsDistributor.sol";
 import "../interfaces/lens/ILens.sol";
+import "../interfaces/ySwap/ITradeFactory.sol";
 
 abstract contract MorphoStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
@@ -29,9 +30,11 @@ abstract contract MorphoStrategy is BaseStrategy {
 
     address public rewardsDistributor =
         0x3B14E5C73e0A56D607A8688098326fD4b4292135;
-    IERC20 public constant MORPHO_TOKEN =
-        IERC20(0x9994E35Db50125E0DF82e4c2dde62496CE330999);
+    address public constant MORPHO_TOKEN =
+        0x9994E35Db50125E0DF82e4c2dde62496CE330999;
 
+    // ySwap TradeFactory:
+    address public tradeFactory;
     // Morpho is a contract to handle interaction with the protocol
     IMorpho public immutable morpho;
     // Lens is a contract to fetch data about Morpho protocol
@@ -328,4 +331,30 @@ abstract contract MorphoStrategy is BaseStrategy {
             uint256 _balanceOnPool,
             uint256 _apr
         );
+
+    // ---------------------- YSWAPS FUNCTIONS ----------------------
+    function setTradeFactory(address _tradeFactory) external onlyGovernance {
+        if (tradeFactory != address(0)) {
+            _removeTradeFactoryPermissions();
+        }
+        IERC20(MORPHO_TOKEN).safeApprove(_tradeFactory, type(uint96).max);
+        ITradeFactory tf = ITradeFactory(_tradeFactory);
+        tf.enable(MORPHO_TOKEN, address(want));
+        tradeFactory = _tradeFactory;
+        setAdditionalTradeTokens();
+    }
+
+    function setAdditionalTradeTokens() internal virtual;
+
+    function removeTradeFactoryPermissions() external onlyEmergencyAuthorized {
+        _removeTradeFactoryPermissions();
+    }
+
+    function _removeTradeFactoryPermissions() internal {
+        IERC20(MORPHO_TOKEN).safeApprove(tradeFactory, 0);
+        removeAdditionalTradeTokens();
+        tradeFactory = address(0);
+    }
+
+    function removeAdditionalTradeTokens() internal virtual;
 }

@@ -53,11 +53,18 @@ def test_profitable_harvest_using_yswap(
     assert vault.pricePerShare() > before_pps
 
 
-def test_disabling_trade_factory(strategy, comp_token, gov, trade_factory):
+def test_disabling_trade_factory(
+    strategy, comp_token, gov, trade_factory, morpho_token
+):
     assert strategy.tradeFactory() == trade_factory.address
+    assert comp_token.allowance(strategy.address, trade_factory.address) == 2**96 - 1
+    assert (
+        morpho_token.allowance(strategy.address, trade_factory.address) == 2**96 - 1
+    )
     strategy.removeTradeFactoryPermissions({"from": gov})
     assert strategy.tradeFactory() == ZERO_ADDRESS
     assert comp_token.allowance(strategy.address, trade_factory.address) == 0
+    assert morpho_token.allowance(strategy.address, trade_factory.address) == 0
 
 
 def test_profitable_harvest_exit_using_yswap(

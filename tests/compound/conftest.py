@@ -137,6 +137,12 @@ def comp_whale(accounts):
 
 
 @pytest.fixture
+def morpho_token(interface):
+    token_address = "0x9994E35Db50125E0DF82e4c2dde62496CE330999"
+    yield interface.IERC20(token_address)
+
+
+@pytest.fixture
 def weth():
     yield Contract(token_addresses["WETH"])
 

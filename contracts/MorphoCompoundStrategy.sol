@@ -8,11 +8,8 @@ pragma experimental ABIEncoderV2;
 import "./MorphoStrategy.sol";
 import "../interfaces/IUniswapV2Router01.sol";
 import "../interfaces/lens/ILensCompound.sol";
-import "../interfaces/ySwap/ITradeFactory.sol";
 
 contract MorphoCompoundStrategy is MorphoStrategy {
-    // ySwap TradeFactory:
-    address public tradeFactory;
     // Router used for swapping reward token (COMP)
     IUniswapV2Router01 public currentV2Router;
     // Minimum amount of COMP to be claimed or sold
@@ -180,23 +177,12 @@ contract MorphoCompoundStrategy is MorphoStrategy {
         }
     }
 
-    // ---------------------- YSWAPS FUNCTIONS ----------------------
-    function setTradeFactory(address _tradeFactory) external onlyGovernance {
-        if (tradeFactory != address(0)) {
-            _removeTradeFactoryPermissions();
-        }
-        IERC20(COMP).safeApprove(_tradeFactory, type(uint96).max);
-        ITradeFactory tf = ITradeFactory(_tradeFactory);
-        tf.enable(COMP, address(want));
-        tradeFactory = _tradeFactory;
+    function setAdditionalTradeTokens() internal virtual override {
+        IERC20(COMP).safeApprove(tradeFactory, type(uint96).max);
+        ITradeFactory(tradeFactory).enable(COMP, address(want));
     }
 
-    function removeTradeFactoryPermissions() external onlyEmergencyAuthorized {
-        _removeTradeFactoryPermissions();
-    }
-
-    function _removeTradeFactoryPermissions() internal {
+    function removeAdditionalTradeTokens() internal virtual override {
         IERC20(COMP).safeApprove(tradeFactory, 0);
-        tradeFactory = address(0);
     }
 }
