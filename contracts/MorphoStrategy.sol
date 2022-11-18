@@ -19,12 +19,18 @@ import {
 import "@openzeppelin/contracts/math/Math.sol";
 
 import "../interfaces/IMorpho.sol";
+import "../interfaces/IRewardsDistributor.sol";
 import "../interfaces/lens/ILens.sol";
 
 abstract contract MorphoStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
+
+    address public rewardsDistributor =
+        0x3B14E5C73e0A56D607A8688098326fD4b4292135;
+    IERC20 public constant MORPHO_TOKEN =
+        IERC20(0x9994E35Db50125E0DF82e4c2dde62496CE330999);
 
     // Morpho is a contract to handle interaction with the protocol
     IMorpho public immutable morpho;
@@ -196,6 +202,38 @@ abstract contract MorphoStrategy is BaseStrategy {
         onlyAuthorized
     {
         maxGasForMatching = _maxGasForMatching;
+    }
+
+    /**
+     * @notice Set new rewards distributor contract
+     * @param _rewardsDistributor address of new contract
+     */
+    function setRewardsDistributor(address _rewardsDistributor)
+        external
+        onlyAuthorized
+    {
+        rewardsDistributor = _rewardsDistributor;
+    }
+
+    /**
+     * @notice
+     *  Claims MORPHO rewards. Use Morpho API to get the data: https://api.morpho.xyz/rewards/{address}
+     * @dev See stages of Morpho rewards distibution: https://docs.morpho.xyz/usdmorpho/ages-and-epochs/age-2
+     * @param _account The address of the claimer.
+     * @param _claimable The overall claimable amount of token rewards.
+     * @param _proof The merkle proof that validates this claim.
+     */
+    function claimMorphoRewards(
+        address _account,
+        uint256 _claimable,
+        bytes32[] calldata _proof
+    ) external onlyAuthorized {
+        // claim rewards and leave them from sweeping
+        IRewardsDistributor(rewardsDistributor).claim(
+            _account,
+            _claimable,
+            _proof
+        );
     }
 
     // ---------------------- View functions ----------------------

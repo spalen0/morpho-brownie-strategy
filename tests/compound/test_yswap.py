@@ -1,6 +1,5 @@
 import brownie
-from brownie import Contract
-from brownie import ZERO_ADDRESS
+from brownie import Contract, ZERO_ADDRESS
 import pytest
 
 

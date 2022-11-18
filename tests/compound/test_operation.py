@@ -115,7 +115,19 @@ def test_change_debt(
 
 
 def test_sweep(
-    gov, vault, strategy, token, user, amount, weth, weth_amount, usdt, usdt_amount
+    gov,
+    vault,
+    strategy,
+    token,
+    user,
+    amount,
+    weth,
+    weth_amount,
+    usdt,
+    usdt_amount,
+    pool_token,
+    comp_token,
+    comp_whale,
 ):
     # Strategy want token doesn't work
     token.transfer(strategy, amount, {"from": user})
@@ -133,6 +145,9 @@ def test_sweep(
     # with brownie.reverts("!protected"):
     #     strategy.sweep(strategy.protectedToken(), {"from": gov})
 
+    comp_amount = 2 * strategy.minCompToClaimOrSell()
+    comp_token.transfer(strategy, comp_amount, {"from": comp_whale})
+
     if weth.address != strategy.want():
         before_balance = weth.balanceOf(gov)
         weth.transfer(strategy, weth_amount, {"from": user})
@@ -147,6 +162,9 @@ def test_sweep(
         assert usdt.balanceOf(user) == 0
         strategy.sweep(usdt, {"from": gov})
         assert usdt.balanceOf(gov) == usdt_amount + before_balance
+
+    # protected token shouldn't be sweeped
+    assert comp_token.balanceOf(strategy) == comp_amount
 
 
 def test_triggers(

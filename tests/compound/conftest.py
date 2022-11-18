@@ -109,7 +109,7 @@ compound_pool_token_addresses = {
 
 
 @pytest.fixture(scope="session", autouse=True)
-def poolToken(token):
+def pool_token(token):
     yield compound_pool_token_addresses[token.symbol()]
 
 
@@ -179,7 +179,7 @@ def strategy(
     strategist,
     keeper,
     vault,
-    poolToken,
+    pool_token,
     MorphoCompoundStrategy,
     gov,
     trade_factory,
@@ -189,7 +189,7 @@ def strategy(
     strategy = strategist.deploy(
         MorphoCompoundStrategy,
         vault,
-        poolToken,
+        pool_token,
         "StrategyMorphoCompound" + token.symbol(),
     )
     strategy.setKeeper(keeper)

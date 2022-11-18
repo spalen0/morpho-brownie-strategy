@@ -26,7 +26,7 @@ contract MorphoCompoundStrategy is MorphoStrategy {
         IUniswapV2Router01(0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F);
 
     // use aave metric for seconds per year: https://docs.aave.com/developers/v/2.0/guides/apy-and-apr#compute-data
-    // block per year = seconds per year / 4 = 31536000 / 4 = 2628000
+    // block per year = seconds per year / 12 = 31536000 / 12 = 2628000
     uint256 private constant BLOCKS_PER_YEAR = 2628000;
 
     constructor(

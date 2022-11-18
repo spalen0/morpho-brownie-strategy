@@ -108,7 +108,7 @@ aave_pool_token_addresses = {
 
 
 @pytest.fixture(scope="session", autouse=True)
-def poolToken(token):
+def pool_token(token):
     yield aave_pool_token_addresses[token.symbol()]
 
 
@@ -151,9 +151,9 @@ def vault(pm, gov, rewards, guardian, management, token):
 
 
 @pytest.fixture
-def strategy(strategist, keeper, vault, poolToken, token, MorphoAaveStrategy, gov):
+def strategy(strategist, keeper, vault, pool_token, token, MorphoAaveStrategy, gov):
     strategy = strategist.deploy(
-        MorphoAaveStrategy, vault, poolToken, "StrategyMorphoAave" + token.symbol()
+        MorphoAaveStrategy, vault, pool_token, "StrategyMorphoAave" + token.symbol()
     )
     strategy.setKeeper(keeper)
     vault.addStrategy(strategy, 10_000, 0, 2**256 - 1, 1_000, {"from": gov})
