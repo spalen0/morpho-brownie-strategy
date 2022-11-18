@@ -1,10 +1,17 @@
 import brownie
-from brownie import Contract, Wei, ZERO_ADDRESS
+from brownie import Contract, Wei, ZERO_ADDRESS, reverts
 import pytest
 
 
 def test_strategy_setup(
-    token, comp_token, vault, strategy, trade_factory, sushi_address, uni_address
+    token,
+    comp_token,
+    vault,
+    strategy,
+    trade_factory,
+    sushi_address,
+    uni_address,
+    morpho_token,
 ):
     uint256_max = 2**256 - 1
     assert token.allowance(strategy.address, strategy.morpho()) == uint256_max
@@ -18,29 +25,46 @@ def test_strategy_setup(
 
     assert strategy.tradeFactory() == trade_factory.address
     assert comp_token.allowance(strategy.address, trade_factory.address) == uint96_max
+    assert morpho_token.allowance(strategy.address, trade_factory.address) == uint96_max
 
 
-def test_toggle_swap_router(strategy, sushi_address, uni_address):
+def test_toggle_swap_router(strategy, sushi_address, uni_address, rando):
     assert strategy.currentV2Router() == sushi_address
+
+    with reverts():
+        strategy.setToggleV2Router({"from": rando})
+
     strategy.setToggleV2Router()
     assert strategy.currentV2Router() == uni_address
 
 
-def test_set_min_comp_to_claim(strategy):
+def test_set_min_comp_to_claim(strategy, rando):
     assert strategy.minCompToClaimOrSell() == Wei("0.1 ether")
     new_value = Wei("11.11 ether")
+
+    with reverts():
+        strategy.setMinCompToClaimOrSell(Wei("11.55 ether"), {"from": rando})
+
     strategy.setMinCompToClaimOrSell(new_value)
     assert strategy.minCompToClaimOrSell() == new_value
 
 
-def test_set_max_gas_for_matching(strategy):
+def test_set_max_gas_for_matching(strategy, rando):
     assert strategy.maxGasForMatching() == 100000
     new_value = Wei("0.05212 ether")
+
+    with reverts():
+        strategy.setMaxGasForMatching(Wei("1.05212 ether"), {"from": rando})
+
     strategy.setMaxGasForMatching(new_value)
     assert strategy.maxGasForMatching() == new_value
 
 
-def test_set_rewards_distributor(strategy):
+def test_set_rewards_distributor(strategy, rando):
     assert strategy.rewardsDistributor() == "0x3B14E5C73e0A56D607A8688098326fD4b4292135"
+
+    with reverts():
+        strategy.setRewardsDistributor(strategy, {"from": rando})
+
     strategy.setRewardsDistributor(ZERO_ADDRESS)
     assert strategy.rewardsDistributor() == ZERO_ADDRESS
