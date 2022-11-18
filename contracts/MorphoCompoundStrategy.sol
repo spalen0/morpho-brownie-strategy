@@ -98,6 +98,21 @@ contract MorphoCompoundStrategy is MorphoStrategy {
         _apr = nextSupplyRatePerBlock.mul(BLOCKS_PER_YEAR);
     }
 
+    function protectedTokens()
+        internal
+        view
+        override
+        returns (address[] memory)
+    {
+        address[] memory superProtected = super.protectedTokens();
+        address[] memory protected = new address[](superProtected.length + 1);
+        for (uint256 i = 0; i < superProtected.length; i++) {
+            protected[i] = superProtected[i];
+        }
+        protected[protected.length - 1] = COMP;
+        return protected;
+    }
+
     // ---------------------- functions for claiming reward token COMP ------------------
     function claimComp() internal {
         address[] memory pools = new address[](1);
