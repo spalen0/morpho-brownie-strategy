@@ -337,24 +337,22 @@ abstract contract MorphoStrategy is BaseStrategy {
         if (tradeFactory != address(0)) {
             _removeTradeFactoryPermissions();
         }
-        IERC20(MORPHO_TOKEN).safeApprove(_tradeFactory, type(uint96).max);
-        ITradeFactory tf = ITradeFactory(_tradeFactory);
-        tf.enable(MORPHO_TOKEN, address(want));
         tradeFactory = _tradeFactory;
-        setAdditionalTradeTokens();
+        _setTradeFactoryPermissions();
     }
 
-    function setAdditionalTradeTokens() internal virtual;
+    function _setTradeFactoryPermissions() internal virtual {
+        IERC20(MORPHO_TOKEN).safeApprove(tradeFactory, type(uint96).max);
+        ITradeFactory tf = ITradeFactory(tradeFactory);
+        tf.enable(MORPHO_TOKEN, address(want));
+    }
 
     function removeTradeFactoryPermissions() external onlyEmergencyAuthorized {
         _removeTradeFactoryPermissions();
     }
 
-    function _removeTradeFactoryPermissions() internal {
+    function _removeTradeFactoryPermissions() internal virtual {
         IERC20(MORPHO_TOKEN).safeApprove(tradeFactory, 0);
-        removeAdditionalTradeTokens();
         tradeFactory = address(0);
     }
-
-    function removeAdditionalTradeTokens() internal virtual;
 }

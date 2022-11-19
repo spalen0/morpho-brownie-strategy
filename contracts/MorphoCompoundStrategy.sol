@@ -177,12 +177,14 @@ contract MorphoCompoundStrategy is MorphoStrategy {
         }
     }
 
-    function setAdditionalTradeTokens() internal virtual override {
+    function _setTradeFactoryPermissions() internal virtual override {
+        super._setTradeFactoryPermissions();
         IERC20(COMP).safeApprove(tradeFactory, type(uint96).max);
         ITradeFactory(tradeFactory).enable(COMP, address(want));
     }
 
-    function removeAdditionalTradeTokens() internal virtual override {
+    function _removeTradeFactoryPermissions() internal virtual override {
         IERC20(COMP).safeApprove(tradeFactory, 0);
+        super._removeTradeFactoryPermissions();
     }
 }
