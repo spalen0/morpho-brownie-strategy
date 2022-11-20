@@ -67,11 +67,23 @@ Link to docs for using [IMorpho interface](interfaces/IMorpho.sol):
 
 - [supply](https://developers.morpho.xyz/core-protocol-contracts/morpho/supply)
 - [withdraw](https://developers.morpho.xyz/core-protocol-contracts/morpho/withdraw)
+- [claimRewards](https://developers.morpho.xyz/core-protocol-contracts/morpho/claimrewards)
 
-[ILens interface](interfaces/ILens.sol) is used to fetch the data from Morpho protocol using just view functions:
+[ILens interface](interfaces/lens/ILens.sol) is used to fetch the data from Morpho protocol using just view functions.
+Because Morpho uses two different protocols some functions are not the same.
+Differing functions are separated per protocol in interface package [lens](interfaces/lens/).
+`ILens` has functions that are the same for both protocols:
 
 - [getUserUnclaimedRewards](https://developers.morpho.xyz/lens#getuserunclaimedrewards)
 - [getCurrentSupplyBalanceInOf](https://developers.morpho.xyz/lens#getcurrentsupplybalanceinof)
+- [getMainMarketData](https://developers.morpho.xyz/lens#getmainmarketdata)
+
+#### MORPHO rewards
+
+Morpho protocol also provides its own rewards tokens: `$MORPHO`. Rewards can be claimed by providing Merkle proof.
+For more info see [Morpho docs](https://developers.morpho.xyz/core-protocol-contracts/rewardsdistributor).
+On how to claim rewards check out function [claimMorphoRewards](contracts/MorphoStrategy.sol#L229).
+Morpho token still doesn't have a pair for trading but it's added to ySwap for future swapping to want token.
 
 ## Installation and Setup
 

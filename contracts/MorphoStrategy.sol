@@ -231,7 +231,6 @@ abstract contract MorphoStrategy is BaseStrategy {
         uint256 _claimable,
         bytes32[] calldata _proof
     ) external onlyAuthorized {
-        // claim rewards and leave them from sweeping
         IRewardsDistributor(rewardsDistributor).claim(
             _account,
             _claimable,
