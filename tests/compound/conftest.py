@@ -38,6 +38,11 @@ def keeper(accounts):
     yield accounts[5]
 
 
+@pytest.fixture
+def rando(accounts):
+    yield accounts[9]
+
+
 token_addresses = {
     "WBTC": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",  # WBTC
     "WETH": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",  # WETH
@@ -109,7 +114,7 @@ compound_pool_token_addresses = {
 
 
 @pytest.fixture(scope="session", autouse=True)
-def poolToken(token):
+def pool_token(token):
     yield compound_pool_token_addresses[token.symbol()]
 
 
@@ -134,6 +139,12 @@ def comp_whale(accounts):
     yield accounts.at(
         "0x5608169973d639649196a84ee4085a708bcbf397", force=True
     )  # Compound: Team 3
+
+
+@pytest.fixture
+def morpho_token(interface):
+    token_address = "0x9994E35Db50125E0DF82e4c2dde62496CE330999"
+    yield interface.IERC20(token_address)
 
 
 @pytest.fixture
@@ -179,7 +190,7 @@ def strategy(
     strategist,
     keeper,
     vault,
-    poolToken,
+    pool_token,
     MorphoCompoundStrategy,
     gov,
     trade_factory,
@@ -189,7 +200,7 @@ def strategy(
     strategy = strategist.deploy(
         MorphoCompoundStrategy,
         vault,
-        poolToken,
+        pool_token,
         "StrategyMorphoCompound" + token.symbol(),
     )
     strategy.setKeeper(keeper)

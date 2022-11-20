@@ -16,7 +16,7 @@ def test_migration(
     gov,
     user,
     RELATIVE_APPROX,
-    poolToken,
+    pool_token,
 ):
     # Deposit to the vault and harvest
     token.approve(vault.address, amount, {"from": user})
@@ -27,7 +27,7 @@ def test_migration(
 
     # migrate to a new strategy
     new_strategy = strategist.deploy(
-        MorphoAaveStrategy, vault, poolToken, "StrategyMorphoAave2" + token.symbol()
+        MorphoAaveStrategy, vault, pool_token, "StrategyMorphoAave2" + token.symbol()
     )
     vault.migrateStrategy(strategy, new_strategy, {"from": gov})
     assert (

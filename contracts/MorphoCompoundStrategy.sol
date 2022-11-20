@@ -8,11 +8,8 @@ pragma experimental ABIEncoderV2;
 import "./MorphoStrategy.sol";
 import "../interfaces/IUniswapV2Router01.sol";
 import "../interfaces/lens/ILensCompound.sol";
-import "../interfaces/ySwap/ITradeFactory.sol";
 
 contract MorphoCompoundStrategy is MorphoStrategy {
-    // ySwap TradeFactory:
-    address public tradeFactory;
     // Router used for swapping reward token (COMP)
     IUniswapV2Router01 public currentV2Router;
     // Minimum amount of COMP to be claimed or sold
@@ -26,7 +23,7 @@ contract MorphoCompoundStrategy is MorphoStrategy {
         IUniswapV2Router01(0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F);
 
     // use aave metric for seconds per year: https://docs.aave.com/developers/v/2.0/guides/apy-and-apr#compute-data
-    // block per year = seconds per year / 4 = 31536000 / 4 = 2628000
+    // block per year = seconds per year / 12 = 31536000 / 12 = 2628000
     uint256 private constant BLOCKS_PER_YEAR = 2628000;
 
     constructor(
@@ -98,6 +95,21 @@ contract MorphoCompoundStrategy is MorphoStrategy {
         _apr = nextSupplyRatePerBlock.mul(BLOCKS_PER_YEAR);
     }
 
+    function protectedTokens()
+        internal
+        view
+        override
+        returns (address[] memory)
+    {
+        address[] memory superProtected = super.protectedTokens();
+        address[] memory protected = new address[](superProtected.length + 1);
+        for (uint256 i = 0; i < superProtected.length; i++) {
+            protected[i] = superProtected[i];
+        }
+        protected[protected.length - 1] = COMP;
+        return protected;
+    }
+
     // ---------------------- functions for claiming reward token COMP ------------------
     function claimComp() internal {
         address[] memory pools = new address[](1);
@@ -165,23 +177,14 @@ contract MorphoCompoundStrategy is MorphoStrategy {
         }
     }
 
-    // ---------------------- YSWAPS FUNCTIONS ----------------------
-    function setTradeFactory(address _tradeFactory) external onlyGovernance {
-        if (tradeFactory != address(0)) {
-            _removeTradeFactoryPermissions();
-        }
-        IERC20(COMP).safeApprove(_tradeFactory, type(uint96).max);
-        ITradeFactory tf = ITradeFactory(_tradeFactory);
-        tf.enable(COMP, address(want));
-        tradeFactory = _tradeFactory;
+    function _setTradeFactoryPermissions() internal virtual override {
+        super._setTradeFactoryPermissions();
+        IERC20(COMP).safeApprove(tradeFactory, type(uint96).max);
+        ITradeFactory(tradeFactory).enable(COMP, address(want));
     }
 
-    function removeTradeFactoryPermissions() external onlyEmergencyAuthorized {
-        _removeTradeFactoryPermissions();
-    }
-
-    function _removeTradeFactoryPermissions() internal {
+    function _removeTradeFactoryPermissions() internal virtual override {
         IERC20(COMP).safeApprove(tradeFactory, 0);
-        tradeFactory = address(0);
+        super._removeTradeFactoryPermissions();
     }
 }
